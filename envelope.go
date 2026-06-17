@@ -3,6 +3,7 @@ package websocket
 import (
 	"encoding/base64"
 	"encoding/json"
+	"strconv"
 	"strings"
 	"unicode"
 )
@@ -87,7 +88,7 @@ func toString(v interface{}) string {
 	case string:
 		return t
 	case float64:
-		return strings.TrimRight(strings.TrimRight(string(rune(int(t))), "0"), ".")
+		return strconv.FormatFloat(t, 'f', -1, 64)
 	default:
 		b, _ := json.Marshal(t)
 		return string(b)

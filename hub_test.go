@@ -14,6 +14,18 @@ import (
 	"github.com/velonetics/lura/v2/logging"
 )
 
+func newTestHub(endpoint string, cfg Config) *Hub {
+	h := &Hub{
+		endpoint: endpoint,
+		cfg:      cfg,
+		logger:   logging.NoOp,
+		clients:  make(map[string]*ClientSession),
+		backoff:  newBackoff(cfg.BackoffStrategy),
+	}
+	h.lifecycleCtx, h.lifecycleCancel = context.WithCancel(context.Background())
+	return h
+}
+
 func TestClientSessionQueueInbound(t *testing.T) {
 	s := newClientSession("id", "/echo", map[string]interface{}{"uuid": "id"}, nil, 2)
 	if !s.queueInbound([]byte("a")) {
@@ -80,14 +92,8 @@ func TestHubFlushPendingAfterReconnect(t *testing.T) {
 		MaxMessageSize:    1024,
 		WriteWait:         5 * time.Second,
 	}
-	logger := logging.NoOp
-	hub := &Hub{
-		endpoint: "/echo",
-		cfg:      cfg,
-		logger:   logger,
-		clients:  make(map[string]*ClientSession),
-		backoff:  newBackoff(cfg.BackoffStrategy),
-	}
+	hub := newTestHub("/echo", cfg)
+	defer hub.lifecycleCancel()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -158,13 +164,8 @@ func TestConnectBackendSerialized(t *testing.T) {
 
 	wsURL := "ws" + strings.TrimPrefix(backend.URL, "http")
 	cfg := Config{MaxRetries: 1, BackoffStrategy: "fallback", WriteWait: time.Second}
-	hub := &Hub{
-		endpoint: "/echo",
-		cfg:      cfg,
-		logger:   logging.NoOp,
-		clients:  make(map[string]*ClientSession),
-		backoff:  newBackoff(cfg.BackoffStrategy),
-	}
+	hub := newTestHub("/echo", cfg)
+	defer hub.lifecycleCancel()
 	hub.backendURL = wsURL
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -182,5 +183,73 @@ func TestConnectBackendSerialized(t *testing.T) {
 
 	if got := dials.Load(); got != 1 {
 		t.Fatalf("expected exactly one backend dial, got %d", got)
+	}
+}
+
+func TestBackendReadSurvivesClientContextCancellation(t *testing.T) {
+	backendReady := make(chan struct{})
+	pushMsg := make(chan struct{})
+
+	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		c, err := websocket.Accept(w, r, nil)
+		if err != nil {
+			return
+		}
+		defer c.Close(websocket.StatusNormalClosure, "bye")
+		ctx := r.Context()
+
+		_, data, err := c.Read(ctx)
+		if err != nil || string(data) != handshakeMessage {
+			return
+		}
+		if err := c.Write(ctx, websocket.MessageText, []byte(handshakeOK)); err != nil {
+			return
+		}
+		close(backendReady)
+
+		select {
+		case <-pushMsg:
+			_ = c.Write(ctx, websocket.MessageText, []byte("broadcast-payload"))
+		case <-ctx.Done():
+		}
+		<-ctx.Done()
+	}))
+	defer backend.Close()
+
+	wsURL := "ws" + strings.TrimPrefix(backend.URL, "http")
+	cfg := Config{
+		Timeout:         5 * time.Second,
+		WriteWait:       5 * time.Second,
+		MaxMessageSize:  1024,
+		MessageBufferSize: 4,
+	}
+	hub := newTestHub("/echo", cfg)
+	defer hub.lifecycleCancel()
+	hub.backendURL = wsURL
+
+	clientCtx, clientCancel := context.WithCancel(context.Background())
+	if err := hub.connectBackend(clientCtx); err != nil {
+		t.Fatalf("connect backend: %v", err)
+	}
+
+	select {
+	case <-backendReady:
+	case <-time.After(2 * time.Second):
+		t.Fatal("backend never became ready")
+	}
+	clientCancel()
+
+	client2 := newClientSession("sess-2", "/echo", map[string]interface{}{"uuid": "sess-2"}, nil, cfg.MessageBufferSize)
+	hub.registerClient(client2)
+
+	close(pushMsg)
+
+	select {
+	case msg := <-client2.outbox:
+		if string(msg) != "broadcast-payload" {
+			t.Fatalf("unexpected payload: %q", string(msg))
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("backend read loop stopped after client context was cancelled")
 	}
 }

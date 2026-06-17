@@ -36,6 +36,9 @@ type Hub struct {
 
 	connectMu   sync.Mutex
 	reconnectMu sync.Mutex
+
+	lifecycleCtx    context.Context
+	lifecycleCancel context.CancelFunc
 }
 
 var hubRegistry sync.Map
@@ -52,6 +55,7 @@ func GetHub(endpoint string, cfg Config, logger logging.Logger) *Hub {
 		clients:  make(map[string]*ClientSession),
 		backoff:  newBackoff(cfg.BackoffStrategy),
 	}
+	h.lifecycleCtx, h.lifecycleCancel = context.WithCancel(context.Background())
 	actual, _ := hubRegistry.LoadOrStore(endpoint, h)
 	return actual.(*Hub)
 }
@@ -150,7 +154,7 @@ func (h *Hub) connectBackend(ctx context.Context) error {
 
 		h.setBackend(conn)
 		h.retries = 0
-		go h.readBackend(ctx, conn)
+		go h.readBackend(h.lifecycleCtx, conn)
 		return nil
 	}
 }
@@ -178,16 +182,16 @@ func (h *Hub) markBackendDown() {
 	h.backendMu.Unlock()
 }
 
-func (h *Hub) scheduleReconnect(ctx context.Context) {
+func (h *Hub) scheduleReconnect() {
 	if !h.reconnectMu.TryLock() {
 		return
 	}
 	go func() {
 		defer h.reconnectMu.Unlock()
-		if err := h.connectBackend(ctx); err != nil {
+		if err := h.connectBackend(h.lifecycleCtx); err != nil {
 			return
 		}
-		h.flushAllPending(ctx)
+		h.flushAllPending(h.lifecycleCtx)
 	}()
 }
 
@@ -223,7 +227,7 @@ func (h *Hub) readBackend(ctx context.Context, conn *websocket.Conn) {
 		h.backendMu.Unlock()
 		_ = conn.Close(websocket.StatusNormalClosure, "closed")
 		h.logger.Warning("[SERVICE: Websocket][Client]", "Reading from the connection: backend closed")
-		h.scheduleReconnect(ctx)
+		h.scheduleReconnect()
 	}()
 
 	for {
@@ -294,7 +298,7 @@ func (h *Hub) sendToBackend(ctx context.Context, s *ClientSession, env Envelope)
 
 	h.markBackendDown()
 	if s != nil && s.queueInbound(data) {
-		h.scheduleReconnect(ctx)
+		h.scheduleReconnect()
 		return nil
 	}
 	return err
@@ -331,7 +335,7 @@ func (h *Hub) flushAllPending(ctx context.Context) {
 				if err.Error() == errEmptyConnection {
 					client.requeueInbound(data)
 					h.markBackendDown()
-					h.scheduleReconnect(ctx)
+					h.scheduleReconnect()
 					return
 				}
 				h.logger.Error("[SERVICE: Websocket]", "Writing queued request:", err.Error())
