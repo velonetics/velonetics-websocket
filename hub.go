@@ -387,6 +387,7 @@ func (h *Hub) handleClient(ctx context.Context, s *ClientSession, endpointURL st
 		if typ != websocket.MessageText && typ != websocket.MessageBinary {
 			continue
 		}
+		s.setOutboundFrameType(typ)
 
 		env := NewOutboundEnvelope(endpointURL, s.session, data)
 		if err := h.sendToBackend(ctx, s, env); err != nil {

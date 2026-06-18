@@ -18,6 +18,9 @@ type ClientSession struct {
 	inbox     chan []byte
 	closed    chan struct{}
 	closeOnce sync.Once
+
+	frameMu      sync.Mutex
+	outboundType websocket.MessageType
 }
 
 func NewClientSession(id, url string, session map[string]interface{}, conn *websocket.Conn, buffer int) *ClientSession {
@@ -48,6 +51,21 @@ func (s *ClientSession) close() {
 	})
 }
 
+func (s *ClientSession) setOutboundFrameType(typ websocket.MessageType) {
+	s.frameMu.Lock()
+	s.outboundType = typ
+	s.frameMu.Unlock()
+}
+
+func (s *ClientSession) outboundFrameType() websocket.MessageType {
+	s.frameMu.Lock()
+	defer s.frameMu.Unlock()
+	if s.outboundType == 0 {
+		return websocket.MessageText
+	}
+	return s.outboundType
+}
+
 func (s *ClientSession) writePump(ctx context.Context, maxSize int64, writeWait time.Duration) {
 	for {
 		select {
@@ -64,7 +82,7 @@ func (s *ClientSession) writePump(ctx context.Context, maxSize int64, writeWait 
 				return
 			}
 			wctx, cancel := readContext(ctx, writeWait)
-			err := s.conn.Write(wctx, websocket.MessageText, msg)
+			err := s.conn.Write(wctx, s.outboundFrameType(), msg)
 			cancel()
 			if err != nil {
 				return
