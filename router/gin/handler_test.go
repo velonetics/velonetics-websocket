@@ -11,11 +11,11 @@ import (
 
 	"github.com/coder/websocket"
 	"github.com/gin-gonic/gin"
-	"github.com/velonetics/lura/v2/config"
-	"github.com/velonetics/lura/v2/logging"
-	"github.com/velonetics/lura/v2/proxy"
-	veloneticsgin "github.com/velonetics/lura/v2/router/gin"
-	ws "github.com/velonetics/velonetics-websocket/v2"
+	"github.com/pucora/lura/v2/config"
+	"github.com/pucora/lura/v2/logging"
+	"github.com/pucora/lura/v2/proxy"
+	veloneticsgin "github.com/pucora/lura/v2/router/gin"
+	ws "github.com/pucora/velonetics-websocket/v2"
 )
 
 func TestDirectWebSocketProxy(t *testing.T) {
@@ -106,7 +106,7 @@ func TestMultiplexHandshakeAndRelay(t *testing.T) {
 			t.Errorf("handshake read: %v", err)
 			return
 		}
-		if string(data) != `{"msg":"Velonetics WS proxy starting"}` {
+		if string(data) != `{"msg":"Pucora WS proxy starting"}` {
 			t.Errorf("unexpected handshake: %s", string(data))
 			return
 		}
@@ -195,7 +195,7 @@ func TestMultiplexQueuesUntilBackendReturns(t *testing.T) {
 			_ = c.Close(websocket.StatusNormalClosure, "bye")
 			return
 		}
-		if string(data) != `{"msg":"Velonetics WS proxy starting"}` {
+		if string(data) != `{"msg":"Pucora WS proxy starting"}` {
 			_ = c.Close(websocket.StatusNormalClosure, "bye")
 			return
 		}

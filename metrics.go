@@ -9,7 +9,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 )
 
-const meterName = "github.com/velonetics/velonetics-websocket/v2"
+const meterName = "github.com/pucora/velonetics-websocket/v2"
 
 type Metrics struct {
 	connections  metric.Int64UpDownCounter
@@ -41,13 +41,13 @@ func getMetrics(disabled bool) *Metrics {
 	}
 	metricsOnce.Do(func() {
 		m := otel.Meter(meterName)
-		connections, _ := m.Int64UpDownCounter("velonetics.websocket.connections",
+		connections, _ := m.Int64UpDownCounter("pucora.websocket.connections",
 			metric.WithDescription("Active websocket client connections"))
-		messagesIn, _ := m.Int64Counter("velonetics.websocket.messages.in",
+		messagesIn, _ := m.Int64Counter("pucora.websocket.messages.in",
 			metric.WithDescription("Messages received from clients"))
-		messagesOut, _ := m.Int64Counter("velonetics.websocket.messages.out",
+		messagesOut, _ := m.Int64Counter("pucora.websocket.messages.out",
 			metric.WithDescription("Messages sent to clients"))
-		reconnects, _ := m.Int64Counter("velonetics.websocket.reconnects",
+		reconnects, _ := m.Int64Counter("pucora.websocket.reconnects",
 			metric.WithDescription("Backend websocket reconnect attempts"))
 		globalMetrics = &Metrics{
 			connections: connections,

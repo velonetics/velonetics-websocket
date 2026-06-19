@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/velonetics/lura/v2/config"
+	"github.com/pucora/lura/v2/config"
 )
 
 const Namespace = "websocket"

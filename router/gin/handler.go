@@ -7,11 +7,11 @@ import (
 	"github.com/coder/websocket"
 	"github.com/gin-gonic/gin"
 	uuid "github.com/go-contrib/uuid"
-	"github.com/velonetics/lura/v2/config"
-	"github.com/velonetics/lura/v2/logging"
-	"github.com/velonetics/lura/v2/proxy"
-	veloneticsgin "github.com/velonetics/lura/v2/router/gin"
-	ws "github.com/velonetics/velonetics-websocket/v2"
+	"github.com/pucora/lura/v2/config"
+	"github.com/pucora/lura/v2/logging"
+	"github.com/pucora/lura/v2/proxy"
+	veloneticsgin "github.com/pucora/lura/v2/router/gin"
+	ws "github.com/pucora/velonetics-websocket/v2"
 )
 
 const logPrefix = "[SERVICE: Websocket]"

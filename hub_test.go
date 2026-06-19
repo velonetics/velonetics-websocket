@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
-	"github.com/velonetics/lura/v2/logging"
+	"github.com/pucora/lura/v2/logging"
 )
 
 func newTestHub(endpoint string, cfg Config) *Hub {

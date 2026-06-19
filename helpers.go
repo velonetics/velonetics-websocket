@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/velonetics/lura/v2/config"
+	"github.com/pucora/lura/v2/config"
 )
 
 var blockedHeaders = map[string]struct{}{

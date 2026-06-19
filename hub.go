@@ -8,11 +8,11 @@ import (
 	"time"
 
 	"github.com/coder/websocket"
-	"github.com/velonetics/lura/v2/logging"
+	"github.com/pucora/lura/v2/logging"
 )
 
 const (
-	handshakeMessage = `{"msg":"Velonetics WS proxy starting"}`
+	handshakeMessage = `{"msg":"Pucora WS proxy starting"}`
 	handshakeOK      = "OK"
 )
 
