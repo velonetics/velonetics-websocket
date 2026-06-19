@@ -14,8 +14,8 @@ import (
 	"github.com/pucora/lura/v2/config"
 	"github.com/pucora/lura/v2/logging"
 	"github.com/pucora/lura/v2/proxy"
-	veloneticsgin "github.com/pucora/lura/v2/router/gin"
-	ws "github.com/pucora/velonetics-websocket/v2"
+	pucoragin "github.com/pucora/lura/v2/router/gin"
+	ws "github.com/pucora/pucora-websocket/v2"
 )
 
 func TestDirectWebSocketProxy(t *testing.T) {
@@ -60,7 +60,7 @@ func TestDirectWebSocketProxy(t *testing.T) {
 		},
 	}
 
-	hf := HandlerFactory(logging.NoOp, veloneticsgin.EndpointHandler)
+	hf := HandlerFactory(logging.NoOp, pucoragin.EndpointHandler)
 	engine.GET(endpoint.Endpoint, hf(endpoint, proxy.NoopProxy))
 
 	gw := httptest.NewServer(engine)
@@ -148,7 +148,7 @@ func TestMultiplexHandshakeAndRelay(t *testing.T) {
 		},
 	}
 
-	hf := HandlerFactory(logging.NoOp, veloneticsgin.EndpointHandler)
+	hf := HandlerFactory(logging.NoOp, pucoragin.EndpointHandler)
 	engine.GET(endpoint.Endpoint, hf(endpoint, proxy.NoopProxy))
 
 	gw := httptest.NewServer(engine)
@@ -248,7 +248,7 @@ func TestMultiplexQueuesUntilBackendReturns(t *testing.T) {
 		},
 	}
 
-	hf := HandlerFactory(logging.NoOp, veloneticsgin.EndpointHandler)
+	hf := HandlerFactory(logging.NoOp, pucoragin.EndpointHandler)
 	engine.GET(endpoint.Endpoint, hf(endpoint, proxy.NoopProxy))
 
 	gw := httptest.NewServer(engine)
@@ -323,7 +323,7 @@ func TestMaxMessageSizeDisconnect(t *testing.T) {
 		},
 	}
 
-	hf := HandlerFactory(logging.NoOp, veloneticsgin.EndpointHandler)
+	hf := HandlerFactory(logging.NoOp, pucoragin.EndpointHandler)
 	engine.GET(endpoint.Endpoint, hf(endpoint, proxy.NoopProxy))
 	gw := httptest.NewServer(engine)
 	defer gw.Close()
@@ -362,7 +362,7 @@ func TestRejectNonUpgradeRequest(t *testing.T) {
 			"websocket": map[string]interface{}{},
 		},
 	}
-	hf := HandlerFactory(logging.NoOp, veloneticsgin.EndpointHandler)
+	hf := HandlerFactory(logging.NoOp, pucoragin.EndpointHandler)
 	engine.GET(endpoint.Endpoint, hf(endpoint, proxy.NoopProxy))
 	gw := httptest.NewServer(engine)
 	defer gw.Close()

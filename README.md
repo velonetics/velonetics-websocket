@@ -1,6 +1,6 @@
-# velonetics-websocket
+# pucora-websocket
 
-WebSocket gateway support for [Pucora CE](https://github.com/pucora/velonetics-ce).
+WebSocket gateway support for [Pucora CE](https://github.com/pucora/pucora-ce).
 
 Implements RFC-6455 WebSocket proxying with two modes:
 
@@ -32,7 +32,7 @@ router/gin/     # HandlerFactory integration with Gin
 
 ## Integration
 
-Registered in `velonetics-ce` via `handler_factory.go`:
+Registered in `pucora-ce` via `handler_factory.go`:
 
 ```go
 handlerFactory = wsgin.HandlerFactory(logger, handlerFactory) // before JWT
@@ -44,7 +44,7 @@ JWT runs on the HTTP upgrade; the WebSocket handler runs after validation.
 ## Dependencies
 
 - [`github.com/coder/websocket`](https://github.com/coder/websocket) — WebSocket client/server
-- [`github.com/pucora/lura/v2`](../velonetics-lura) — endpoint config and Gin router types
+- [`github.com/pucora/lura/v2`](../pucora-lura) — endpoint config and Gin router types
 
 ## Tests
 

@@ -10,14 +10,14 @@ import (
 	"github.com/pucora/lura/v2/config"
 	"github.com/pucora/lura/v2/logging"
 	"github.com/pucora/lura/v2/proxy"
-	veloneticsgin "github.com/pucora/lura/v2/router/gin"
-	ws "github.com/pucora/velonetics-websocket/v2"
+	pucoragin "github.com/pucora/lura/v2/router/gin"
+	ws "github.com/pucora/pucora-websocket/v2"
 )
 
 const logPrefix = "[SERVICE: Websocket]"
 
 // HandlerFactory returns a gin HandlerFactory that serves websocket endpoints.
-func HandlerFactory(logger logging.Logger, next veloneticsgin.HandlerFactory) veloneticsgin.HandlerFactory {
+func HandlerFactory(logger logging.Logger, next pucoragin.HandlerFactory) pucoragin.HandlerFactory {
 	return func(remote *config.EndpointConfig, p proxy.Proxy) gin.HandlerFunc {
 		if !ws.IsConfigured(remote.ExtraConfig) {
 			return next(remote, p)

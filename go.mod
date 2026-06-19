@@ -1,4 +1,4 @@
-module github.com/pucora/velonetics-websocket/v2
+module github.com/pucora/pucora-websocket/v2
 
 go 1.25.0
 
@@ -7,7 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.12.0
 	github.com/go-contrib/uuid v1.2.0
 	github.com/pucora/lura/v2 v2.0.0
-	github.com/pucora/velonetics-jose/v2 v2.0.0
+	github.com/pucora/pucora-jose/v2 v2.0.0
 	go.opentelemetry.io/otel v1.43.0
 	go.opentelemetry.io/otel/metric v1.43.0
 )
@@ -120,6 +120,6 @@ require (
 	google.golang.org/protobuf v1.36.10 // indirect
 )
 
-replace github.com/pucora/lura/v2 => ../velonetics-lura
+replace github.com/pucora/lura/v2 => ../lura
 
-replace github.com/pucora/velonetics-jose/v2 => ../velonetics-jose
+replace github.com/pucora/pucora-jose/v2 => ../pucora-jose

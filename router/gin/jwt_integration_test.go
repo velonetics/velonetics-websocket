@@ -11,12 +11,12 @@ import (
 
 	"github.com/coder/websocket"
 	"github.com/gin-gonic/gin"
-	jose "github.com/pucora/velonetics-jose/v2"
-	ginjose "github.com/pucora/velonetics-jose/v2/gin"
+	jose "github.com/pucora/pucora-jose/v2"
+	ginjose "github.com/pucora/pucora-jose/v2/gin"
 	"github.com/pucora/lura/v2/config"
 	"github.com/pucora/lura/v2/logging"
 	"github.com/pucora/lura/v2/proxy"
-	veloneticsgin "github.com/pucora/lura/v2/router/gin"
+	pucoragin "github.com/pucora/lura/v2/router/gin"
 )
 
 const testJWT = "eyJhbGciOiJSUzI1NiIsImtpZCI6IjIwMTEtMDQtMjkiLCJ0eXAiOiJKV1QifQ.eyJhdWQiOiJodHRwOi8vYXBpLmV4YW1wbGUuY29tIiwiZXhwIjoyMDUxODgyNzU1LCJpc3MiOiJodHRwOi8vZXhhbXBsZS5jb20iLCJqdGkiOiJtbmIyM3Zjc3J0NzU2eXVpb21uYnZjeDk4ZXJ0eXVpb3AiLCJyb2xlcyI6WyJyb2xlX2EiLCJyb2xlX2IiXSwic3ViIjoiMTIzNDU2Nzg5MHF3ZXJ0eXVpbyJ9.u1fK05FpXctB-VkhhT3xu2WSIkEr1_VM71ald-yeKTesxhxg68TsHFEOBCgoXPuCviOP8QnUKNuVSeyMJh9z3nnrfQIjo9VZ2yicZu6ImYptSQ2DJbR80GDSPp-H7KnjaR9AAY0HZ0M-KUTaHdLABZFr307nkOeaJn_5jMpav7pqa7nrU3sI1CLX5pYVTggG6t7Zoqj2ebzzqdRxQEtdmZkD_NfH-3w3t-H0ylVdeBnPh-RvlspxC_mJzyUIJ0BwPlZpabppHm1ISySa4kwnwxEYnux0oZcb3PSoOZZZA467JySZ69PRlenNPdfGPL6E3uL1nqPHcxhte7ikSG4Q6Q"
@@ -50,7 +50,7 @@ func TestWebSocketJWTRejectsMissingToken(t *testing.T) {
 	endpoint := jwtWebSocketEndpoint("/secure-echo", jwkSrv.URL, wsBackend)
 
 	engine := gin.New()
-	hf := ginjose.HandlerFactory(HandlerFactory(logging.NoOp, veloneticsgin.EndpointHandler), logging.NoOp, nil)
+	hf := ginjose.HandlerFactory(HandlerFactory(logging.NoOp, pucoragin.EndpointHandler), logging.NoOp, nil)
 	engine.GET(endpoint.Endpoint, hf(endpoint, proxy.NoopProxy))
 
 	gw := httptest.NewServer(engine)
@@ -94,7 +94,7 @@ func TestWebSocketJWTAllowsValidToken(t *testing.T) {
 	endpoint := jwtWebSocketEndpoint("/secure-echo-ok", jwkSrv.URL, wsBackend)
 
 	engine := gin.New()
-	hf := ginjose.HandlerFactory(HandlerFactory(logging.NoOp, veloneticsgin.EndpointHandler), logging.NoOp, nil)
+	hf := ginjose.HandlerFactory(HandlerFactory(logging.NoOp, pucoragin.EndpointHandler), logging.NoOp, nil)
 	engine.GET(endpoint.Endpoint, hf(endpoint, proxy.NoopProxy))
 
 	gw := httptest.NewServer(engine)
@@ -154,7 +154,7 @@ func jwtWebSocketEndpoint(path, jwkURL, wsBackend string) *config.EndpointConfig
 }
 
 func jwkTestEndpoint() http.HandlerFunc {
-	data, err := os.ReadFile("../../../velonetics-jose/fixtures/public.json")
+	data, err := os.ReadFile("../../../pucora-jose/fixtures/public.json")
 	return func(rw http.ResponseWriter, _ *http.Request) {
 		if err != nil {
 			rw.WriteHeader(http.StatusInternalServerError)

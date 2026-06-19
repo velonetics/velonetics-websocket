@@ -9,7 +9,7 @@ import (
 	"go.opentelemetry.io/otel/metric"
 )
 
-const meterName = "github.com/pucora/velonetics-websocket/v2"
+const meterName = "github.com/pucora/pucora-websocket/v2"
 
 type Metrics struct {
 	connections  metric.Int64UpDownCounter
